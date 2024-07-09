@@ -94,7 +94,7 @@ class MainViewModel : ViewModel() {
                         SaveType = "nxt",
                         answer_status = "1",
                         rTem = remainingTime,
-                        SingleTm = singleTm // Convert to String
+                        SingleTm = singleTm
                     )
                 )
                 _saveAnswerResponse.value = response
