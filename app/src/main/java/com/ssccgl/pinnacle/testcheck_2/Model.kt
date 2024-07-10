@@ -71,4 +71,19 @@ data class FetchDataRequest(
     val test_series_id: String
 )
 
+// Data classes for submit request and response
+data class SubmitRequest(
+    val email_id: String,
+    val paper_code: String,
+    val exam_mode_id: String,
+    val test_series_id: String,
+    val rTem: String
+)
+
+data class SubmitResponse(
+    val status: String
+)
+
+
+
 

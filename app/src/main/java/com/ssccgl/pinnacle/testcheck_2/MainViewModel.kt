@@ -111,6 +111,7 @@ class MainViewModel : ViewModel() {
     }
 
     fun moveToQuestion(questionId: Int) {
+        saveCurrentQuestionState(_currentQuestionId.value, _selectedOption.value, _elapsedTime.value) // Save current question state
         _currentQuestionId.value = questionId
         initializeElapsedTime(questionId)
         setSelectedOption(questionId)
@@ -186,6 +187,35 @@ class MainViewModel : ViewModel() {
                 Log.e("MainViewModel", "HttpException: ${e.message}")
             } catch (e: Exception) {
                 _error.value = e.message ?: "Unknown error (By saveAnswer)"
+                Log.e("MainViewModel", "Exception: ${e.message}")
+            }
+        }
+    }
+
+    fun submit() {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.submit(
+                    SubmitRequest(
+                        email_id = emailId,
+                        paper_code = paperCode,
+                        exam_mode_id = examModeId,
+                        test_series_id = testSeriesId,
+                        rTem = formatTime(_remainingCountdown.value)
+                    )
+                )
+                // Handle response if needed
+            } catch (e: SocketTimeoutException) {
+                _error.value = "Network timeout. Please try again later. (By submit)"
+                Log.e("MainViewModel", "SocketTimeoutException: ${e.message}")
+            } catch (e: IOException) {
+                _error.value = "Network error. Please check your connection. (By submit)"
+                Log.e("MainViewModel", "IOException: ${e.message}")
+            } catch (e: HttpException) {
+                _error.value = "Server error: ${e.message}"
+                Log.e("MainViewModel", "HttpException: ${e.message}")
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Unknown error (By submit)"
                 Log.e("MainViewModel", "Exception: ${e.message}")
             }
         }

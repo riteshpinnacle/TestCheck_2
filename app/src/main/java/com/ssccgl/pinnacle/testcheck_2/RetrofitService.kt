@@ -14,6 +14,9 @@ interface ApiService {
     @POST("/save_next")
     suspend fun saveAnswer(@Body request: SaveAnswerRequest): SaveAnswerResponse
 
+    @POST("/submit")
+    suspend fun submit(@Body request: SubmitRequest): SubmitResponse
+
 }
 
 object RetrofitInstance {

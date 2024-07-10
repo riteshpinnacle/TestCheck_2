@@ -1,6 +1,5 @@
 package com.ssccgl.pinnacle.testcheck_2
 
-//import MainViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -279,6 +278,18 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                                                     Text("Save and Next")
                                                 }
                                             }
+
+                                            // Add the Submit button here
+                                            Button(
+                                                onClick = {
+                                                    viewModel.submit()
+                                                },
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = Color.Red
+                                                )
+                                            ) {
+                                                Text("Submit", color = Color.White)
+                                            }
                                         }
                                     }
                                 }
@@ -304,12 +315,10 @@ fun CircularButton(onClick: () -> Unit, text: String) {
         modifier = Modifier
             .size(48.dp)
             .clip(CircleShape)
-//            .background(MaterialTheme.colorScheme.primary)
             .background(Color(0xFFAB47BC))
             .padding(4.dp),
         onClick = onClick,
         shape = CircleShape,
-//        color = MaterialTheme.colorScheme.primary
         color = Color(0xFFAB47BC)
     ) {
         Box(
