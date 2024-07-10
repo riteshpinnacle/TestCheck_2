@@ -1,38 +1,60 @@
+package com.ssccgl.pinnacle.testcheck_2
+
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ssccgl.pinnacle.testcheck_2.ApiResponse
-import com.ssccgl.pinnacle.testcheck_2.FetchDataRequest
-import com.ssccgl.pinnacle.testcheck_2.RetrofitInstance
-import com.ssccgl.pinnacle.testcheck_2.SaveAnswerRequest
-import com.ssccgl.pinnacle.testcheck_2.SaveAnswerResponse
-import com.ssccgl.pinnacle.testcheck_2.formatTime
+import androidx.lifecycle.asLiveData
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
 import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
 
 class MainViewModel : ViewModel() {
 
-    private val _data = MutableLiveData<List<ApiResponse>>()
-    val data: LiveData<List<ApiResponse>> = _data
+    private val _data = MutableStateFlow<List<ApiResponse>>(emptyList())
+    val data: LiveData<List<ApiResponse>> = _data.asLiveData()
 
-    private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
+    private val _error = MutableStateFlow<String?>(null)
+    val error: LiveData<String?> = _error.asLiveData()
 
-    private val _saveAnswerResponse = MutableLiveData<SaveAnswerResponse?>()
-    val saveAnswerResponse: LiveData<SaveAnswerResponse?> = _saveAnswerResponse
+    private val _saveAnswerResponse = MutableStateFlow<SaveAnswerResponse?>(null)
+    val saveAnswerResponse: LiveData<SaveAnswerResponse?> = _saveAnswerResponse.asLiveData()
+
+    private val _currentQuestionId = MutableStateFlow(1)
+    val currentQuestionId: LiveData<Int> = _currentQuestionId.asLiveData()
+
+    private val _selectedOption = MutableStateFlow("")
+    val selectedOption: LiveData<String> = _selectedOption.asLiveData()
+
+    private val _isDataDisplayed = MutableStateFlow(false)
+    val isDataDisplayed: LiveData<Boolean> = _isDataDisplayed.asLiveData()
+
+    private val _remainingCountdown = MutableStateFlow(3600L)
+    val remainingCountdown: LiveData<Long> = _remainingCountdown.asLiveData()
+
+    private val _countdownStarted = MutableStateFlow(false)
+    val countdownStarted: LiveData<Boolean> = _countdownStarted.asLiveData()
+
+    private val _elapsedTime = MutableStateFlow(0L)
+    val elapsedTime: LiveData<Long> = _elapsedTime.asLiveData()
+
+    private val _displayTime = MutableStateFlow("00:00")
+    val displayTime: LiveData<String> = _displayTime.asLiveData()
+
+    private val _selectedTabIndex = MutableStateFlow(0)
+    val selectedTabIndex: LiveData<Int> = _selectedTabIndex.asLiveData()
+
+    val selectedOptions = mutableMapOf<Int, String>()
+    val elapsedTimeMap = mutableMapOf<Int, Long>()
+    val startTimeMap = mutableMapOf<Int, Long>()
 
     private val paperCode = "3227"
     private val emailId = "anshulji100@gmail.com"
     private val examModeId = "1"
     private val testSeriesId = "2"
-
-    // Temporary storage for answers and time taken
-    private val answersMap = HashMap<Int, String>()
-    private val timeTakenMap = HashMap<Int, Long>()
 
     init {
         fetchData()
@@ -51,20 +73,77 @@ class MainViewModel : ViewModel() {
                 )
                 _data.value = response
                 _error.value = null
-            } catch (e: SocketTimeoutException) {
-                _error.value = "Network timeout. Please try again later (By fetch Data)."
-                Log.e("MainViewModel", "SocketTimeoutException: ${e.message}")
-            } catch (e: IOException) {
-                _error.value = "Network error. Please check your connection. (By fetch Data)"
-                Log.e("MainViewModel", "IOException: ${e.message}")
-            } catch (e: HttpException) {
-                _error.value = "Server error: ${e.message}"
-                Log.e("MainViewModel", "HttpException: ${e.message}")
             } catch (e: Exception) {
-                _error.value = e.message ?: "Unknown error (By fetch Data)"
-                Log.e("MainViewModel", "Exception: ${e.message}")
+                _error.value = e.message
             }
         }
+    }
+
+    fun saveCurrentQuestionState(questionId: Int, option: String, elapsedTime: Long) {
+        selectedOptions[questionId] = option
+        elapsedTimeMap[questionId] = elapsedTime
+    }
+
+    fun initializeElapsedTime(questionId: Int) {
+        _elapsedTime.value = elapsedTimeMap[questionId] ?: 0L
+        startTimeMap[questionId] = System.currentTimeMillis()
+    }
+
+    fun setSelectedOption(questionId: Int) {
+        _selectedOption.value = selectedOptions[questionId] ?: ""
+    }
+
+    fun updateElapsedTime(questionId: Int) {
+        val currentTime = System.currentTimeMillis()
+        val startTime = startTimeMap[questionId] ?: currentTime
+        _elapsedTime.value = (elapsedTimeMap[questionId] ?: 0L) + (currentTime - startTime) / 1000
+        _displayTime.value = formatTime(_elapsedTime.value)
+    }
+
+    fun startCountdown() {
+        viewModelScope.launch {
+            _countdownStarted.value = true
+            while (_remainingCountdown.value > 0) {
+                delay(1000L)
+                _remainingCountdown.value--
+            }
+        }
+    }
+
+    fun moveToQuestion(questionId: Int) {
+        _currentQuestionId.value = questionId
+        initializeElapsedTime(questionId)
+        setSelectedOption(questionId)
+    }
+
+    fun moveToSection(index: Int) {
+        _selectedTabIndex.value = index
+        val newQuestionId = when (index) {
+            0 -> 1
+            1 -> 26
+            2 -> 51
+            3 -> 76
+            else -> 1
+        }
+        moveToQuestion(newQuestionId)
+    }
+
+    fun updateSelectedOption(option: String) {
+        _selectedOption.value = option
+    }
+
+    fun moveToPreviousQuestion() {
+        val previousQuestionId = _currentQuestionId.value - 1
+        moveToQuestion(previousQuestionId)
+    }
+
+    fun moveToNextQuestion() {
+        val nextQuestionId = _currentQuestionId.value + 1
+        moveToQuestion(nextQuestionId)
+    }
+
+    fun setIsDataDisplayed(isDisplayed: Boolean) {
+        _isDataDisplayed.value = isDisplayed
     }
 
     fun saveAnswer(
@@ -75,10 +154,7 @@ class MainViewModel : ViewModel() {
         remainingTime: String,
         singleTm: String
     ) {
-        // Save answer and time taken locally
-        answersMap[currentPaperId] = option
-        timeTakenMap[currentPaperId] = singleTm.toLongOrNull() ?: 0L
-
+        Log.d("MainViewModel", "Saving answer: paperId=$paperId, option=$option, subject=$subject, currentPaperId=$currentPaperId, remainingTime=$remainingTime, singleTm=$singleTm")
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.api.saveAnswer(
@@ -113,13 +189,5 @@ class MainViewModel : ViewModel() {
                 Log.e("MainViewModel", "Exception: ${e.message}")
             }
         }
-    }
-
-    fun getSavedAnswer(questionId: Int): String? {
-        return answersMap[questionId]
-    }
-
-    fun getTimeTaken(questionId: Int): Long? {
-        return timeTakenMap[questionId]
     }
 }
