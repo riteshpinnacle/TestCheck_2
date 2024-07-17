@@ -41,8 +41,14 @@ class MainViewModel : ViewModel() {
     private val _elapsedTime = MutableStateFlow(0L)
     val elapsedTime: LiveData<Long> = _elapsedTime.asLiveData()
 
-    private val _displayTime = MutableStateFlow("00:00")
-    val displayTime: LiveData<String> = _displayTime.asLiveData()
+//    private val _displayTime = MutableStateFlow("00:00")
+//    val displayTime: LiveData<String> = _displayTime.asLiveData()
+
+    private val _displayElapsedTime = MutableStateFlow("00:00:00") // Renamed
+    val displayElapsedTime: LiveData<String> = _displayElapsedTime.asLiveData()
+
+    private val _displayCountdownTime = MutableStateFlow("00:00:00") // New
+    val displayCountdownTime: LiveData<String> = _displayCountdownTime.asLiveData()
 
     private val _selectedTabIndex = MutableStateFlow(0)
     val selectedTabIndex: LiveData<Int> = _selectedTabIndex.asLiveData()
@@ -72,6 +78,16 @@ class MainViewModel : ViewModel() {
                     )
                 )
                 _data.value = response
+                // Set initial answers
+                response.flatMap { it.details }.forEach { detail ->
+                    selectedOptions[detail.question_id] =
+                        detail.answer.takeIf { it.isNotBlank() } ?: ""
+                }
+                // Ensure the first question ID is set correctly
+                if (response.isNotEmpty() && response[0].details.isNotEmpty()) {
+                    _currentQuestionId.value = response[0].details[0].question_id
+                    setSelectedOption(response[0].details[0].question_id)
+                }
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message
@@ -97,7 +113,7 @@ class MainViewModel : ViewModel() {
         val currentTime = System.currentTimeMillis()
         val startTime = startTimeMap[questionId] ?: currentTime
         _elapsedTime.value = (elapsedTimeMap[questionId] ?: 0L) + (currentTime - startTime) / 1000
-        _displayTime.value = formatTime(_elapsedTime.value)
+        _displayElapsedTime.value = formatTime(_elapsedTime.value) // Renamed
     }
 
     fun startCountdown() {
@@ -106,6 +122,7 @@ class MainViewModel : ViewModel() {
             while (_remainingCountdown.value > 0) {
                 delay(1000L)
                 _remainingCountdown.value--
+                _displayCountdownTime.value = formatTime(_remainingCountdown.value) // New
             }
         }
     }
@@ -130,7 +147,9 @@ class MainViewModel : ViewModel() {
     }
 
     fun updateSelectedOption(option: String) {
+        Log.d("updateSelectedOption", "Received option: $option")
         _selectedOption.value = option
+        Log.d("updateSelectedOption", "Updated _selectedOption: ${_selectedOption.value}")
     }
 
     fun moveToPreviousQuestion() {
@@ -147,14 +166,21 @@ class MainViewModel : ViewModel() {
         _isDataDisplayed.value = isDisplayed
     }
 
+    fun validateOption(option: String): String {
+        return if (option in listOf("a", "b", "c", "d")) option else ""
+    }
+
     fun saveAnswer(
         paperId: Int,
         option: String,
         subject: Int,
         currentPaperId: Int,
         remainingTime: String,
-        singleTm: String
+        singleTm: String,
+        saveType: String,
+        answerStatus: String
     ) {
+        val validatedOption = validateOption(option)
         Log.d("MainViewModel", "Saving answer: paperId=$paperId, option=$option, subject=$subject, currentPaperId=$currentPaperId, remainingTime=$remainingTime, singleTm=$singleTm")
         viewModelScope.launch {
             try {
@@ -162,17 +188,18 @@ class MainViewModel : ViewModel() {
                     SaveAnswerRequest(
                         paper_code = paperCode,
                         paper_id = paperId.toString(),
-                        option = option,
+                        option = validatedOption,
                         email_id = emailId,
                         test_series_id = testSeriesId,
                         exam_mode_id = examModeId,
                         subject = subject,
                         CurrentPaperId = currentPaperId,
-                        SaveType = "nxt",
-                        answer_status = "1",
+                        SaveType = saveType,
+                        answer_status = answerStatus,
                         rTem = remainingTime,
                         SingleTm = singleTm
                     )
+
                 )
                 _saveAnswerResponse.value = response
                 _error.value = null

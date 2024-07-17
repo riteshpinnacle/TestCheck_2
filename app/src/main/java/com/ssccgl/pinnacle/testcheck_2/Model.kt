@@ -20,9 +20,9 @@ data class Detail(
     val positive_marks: String,
     val negative_marks: Double,
     val answered_ques: Int,
-    val hrs: String,
-    val mins: String,
-    val secs: String,
+    val hrs: String,        // Saves the time for individual question
+    val mins: String,       // Saves the time for individual question
+    val secs: String,       // Saves the time for individual question
     val answer: String
 )
 
@@ -83,7 +83,3 @@ data class SubmitRequest(
 data class SubmitResponse(
     val status: String
 )
-
-
-
-
