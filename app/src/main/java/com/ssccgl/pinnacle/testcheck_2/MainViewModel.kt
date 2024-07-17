@@ -41,13 +41,10 @@ class MainViewModel : ViewModel() {
     private val _elapsedTime = MutableStateFlow(0L)
     val elapsedTime: LiveData<Long> = _elapsedTime.asLiveData()
 
-//    private val _displayTime = MutableStateFlow("00:00")
-//    val displayTime: LiveData<String> = _displayTime.asLiveData()
-
-    private val _displayElapsedTime = MutableStateFlow("00:00:00") // Renamed
+    private val _displayElapsedTime = MutableStateFlow("00:00:00")
     val displayElapsedTime: LiveData<String> = _displayElapsedTime.asLiveData()
 
-    private val _displayCountdownTime = MutableStateFlow("00:00:00") // New
+    private val _displayCountdownTime = MutableStateFlow("00:00:00")
     val displayCountdownTime: LiveData<String> = _displayCountdownTime.asLiveData()
 
     private val _selectedTabIndex = MutableStateFlow(0)
@@ -57,7 +54,7 @@ class MainViewModel : ViewModel() {
     val elapsedTimeMap = mutableMapOf<Int, Long>()
     val startTimeMap = mutableMapOf<Int, Long>()
 
-    private val paperCode = "3227"
+    private val paperCode = "3201"
     private val emailId = "anshulji100@gmail.com"
     private val examModeId = "1"
     private val testSeriesId = "2"
@@ -80,13 +77,13 @@ class MainViewModel : ViewModel() {
                 _data.value = response
                 // Set initial answers
                 response.flatMap { it.details }.forEach { detail ->
-                    selectedOptions[detail.question_id] =
+                    selectedOptions[detail.qid] =
                         detail.answer.takeIf { it.isNotBlank() } ?: ""
                 }
                 // Ensure the first question ID is set correctly
                 if (response.isNotEmpty() && response[0].details.isNotEmpty()) {
-                    _currentQuestionId.value = response[0].details[0].question_id
-                    setSelectedOption(response[0].details[0].question_id)
+                    _currentQuestionId.value = response[0].details[0].qid
+                    setSelectedOption(response[0].details[0].qid)
                 }
                 _error.value = null
             } catch (e: Exception) {
@@ -113,7 +110,7 @@ class MainViewModel : ViewModel() {
         val currentTime = System.currentTimeMillis()
         val startTime = startTimeMap[questionId] ?: currentTime
         _elapsedTime.value = (elapsedTimeMap[questionId] ?: 0L) + (currentTime - startTime) / 1000
-        _displayElapsedTime.value = formatTime(_elapsedTime.value) // Renamed
+        _displayElapsedTime.value = formatTime(_elapsedTime.value)
     }
 
     fun startCountdown() {
@@ -122,7 +119,7 @@ class MainViewModel : ViewModel() {
             while (_remainingCountdown.value > 0) {
                 delay(1000L)
                 _remainingCountdown.value--
-                _displayCountdownTime.value = formatTime(_remainingCountdown.value) // New
+                _displayCountdownTime.value = formatTime(_remainingCountdown.value)
             }
         }
     }
@@ -136,13 +133,8 @@ class MainViewModel : ViewModel() {
 
     fun moveToSection(index: Int) {
         _selectedTabIndex.value = index
-        val newQuestionId = when (index) {
-            0 -> 1
-            1 -> 26
-            2 -> 51
-            3 -> 76
-            else -> 1
-        }
+        val selectedSubject = _data.value.flatMap { it.subjects }[index]
+        val newQuestionId = _data.value.flatMap { it.details }.find { it.subject_id == selectedSubject.sb_id && it.qid == selectedSubject.ppr_id }?.qid ?: 1
         moveToQuestion(newQuestionId)
     }
 
@@ -199,7 +191,6 @@ class MainViewModel : ViewModel() {
                         rTem = remainingTime,
                         SingleTm = singleTm
                     )
-
                 )
                 _saveAnswerResponse.value = response
                 _error.value = null

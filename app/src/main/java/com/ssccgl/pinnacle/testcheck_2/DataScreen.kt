@@ -41,15 +41,15 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
 
     val startTimeMap = viewModel.startTimeMap
     val elapsedTime by viewModel.elapsedTime.observeAsState(0L)
-    val displayElapsedTime by viewModel.displayElapsedTime.observeAsState("00:00:00") // Renamed
-    val displayCountdownTime by viewModel.displayCountdownTime.observeAsState("00:00:00") // New
+    val displayElapsedTime by viewModel.displayElapsedTime.observeAsState("00:00:00")
+    val displayCountdownTime by viewModel.displayCountdownTime.observeAsState("00:00:00")
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Pair(isDataDisplayed, currentQuestionId)) {
         if (isDataDisplayed) {
-            val currentQuestion = details.find { it.question_id == currentQuestionId }
+            val currentQuestion = details.find { it.qid == currentQuestionId }
             if (currentQuestion != null) {
                 viewModel.saveCurrentQuestionState(currentQuestionId, selectedOption, elapsedTime)
                 viewModel.initializeElapsedTime(currentQuestionId)
@@ -76,14 +76,13 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
     LaunchedEffect(isDataDisplayed) {
         if (isDataDisplayed) {
             if (currentQuestionId == 1 && details.isNotEmpty()) {
-                viewModel.moveToQuestion(details.first().question_id)
+                viewModel.moveToQuestion(details.first().qid)
             }
             if (!countdownStarted) {
                 viewModel.startCountdown()
             }
         }
     }
-
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -113,20 +112,19 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
 
                                     viewModel.saveAnswer(
                                         paperId = currentQuestionId,
-//                                        option = selectedOption.ifEmpty { "" },
                                         option = viewModel.validateOption(selectedOption),
                                         subject = detail.subject_id,
-                                        currentPaperId = detail.question_id,
+                                        currentPaperId = detail.qid,
                                         remainingTime = formatTime(remainingCountdown),
-                                        singleTm = formatTime(newElapsedTime), // Save time in seconds
-                                        saveType = "nav", // Pass "nav" as SaveType
+                                        singleTm = formatTime(newElapsedTime),
+                                        saveType = "nav",
                                         answerStatus = "4"
                                     )
 
-                                    viewModel.moveToQuestion(detail.question_id)
+                                    viewModel.moveToQuestion(detail.qid)
                                     coroutineScope.launch { drawerState.close() }
                                 },
-                                text = detail.question_id.toString()
+                                text = detail.qid.toString()
                             )
                         }
                     }
@@ -154,7 +152,7 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
-                    val tabTitles = listOf("Reasoning", "General Awareness", "Quantitative Aptitude", "English")
+                    val tabTitles = data.flatMap { it.subjects }.map { it.subject_name }
                     val selectedTabIndex by viewModel.selectedTabIndex.observeAsState(0)
 
                     TabRow(selectedTabIndex = selectedTabIndex) {
@@ -196,7 +194,7 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                             modifier = Modifier.padding(16.dp)
                         )
                     } else {
-                        val currentQuestion = details.find { it.question_id == currentQuestionId }
+                        val currentQuestion = details.find { it.qid == currentQuestionId }
 
                         if (currentQuestion != null) {
                             viewModel.setIsDataDisplayed(true)
@@ -257,13 +255,12 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                                                         val previousQuestionId = currentQuestionId - 1
 
                                                         viewModel.saveAnswer(
-                                                            paperId = currentQuestion.question_id,
-//                                                            option = selectedOption.ifEmpty { "" },
+                                                            paperId = currentQuestion.qid,
                                                             option = viewModel.validateOption(selectedOption),
                                                             subject = currentQuestion.subject_id,
-                                                            currentPaperId = previousQuestionId, // Set CurrentPaperId to the previous question number
+                                                            currentPaperId = previousQuestionId,
                                                             remainingTime = formatTime(remainingCountdown),
-                                                            singleTm = formatTime(newElapsedTime), // Save time in seconds
+                                                            singleTm = formatTime(newElapsedTime),
                                                             saveType = "nxt",
                                                             answerStatus = "1"
                                                         )
@@ -275,7 +272,7 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                                                 }
                                             }
 
-                                            if (currentQuestionId < details.maxOf { it.question_id }) {
+                                            if (currentQuestionId < details.maxOf { it.qid }) {
                                                 Button(
                                                     onClick = {
                                                         val currentTime = System.currentTimeMillis()
@@ -287,13 +284,12 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                                                         val nextQuestionId = currentQuestionId + 1
 
                                                         viewModel.saveAnswer(
-                                                            paperId = currentQuestion.question_id,
-//                                                            option = selectedOption.ifEmpty { "" },
+                                                            paperId = currentQuestion.qid,
                                                             option = viewModel.validateOption(selectedOption),
                                                             subject = currentQuestion.subject_id,
                                                             currentPaperId = nextQuestionId,
                                                             remainingTime = formatTime(remainingCountdown),
-                                                            singleTm = formatTime(newElapsedTime),  // Save time in seconds
+                                                            singleTm = formatTime(newElapsedTime),
                                                             saveType = "nxt",
                                                             answerStatus = "1"
                                                         )
