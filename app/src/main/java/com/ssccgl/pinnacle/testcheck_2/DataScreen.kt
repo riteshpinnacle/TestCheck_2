@@ -90,7 +90,7 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
         drawerState = drawerState,
         scrimColor = Color.White.copy(alpha = 0.9f),
         gesturesEnabled = true,
-        modifier = Modifier.fillMaxWidth(0.5f),
+        modifier = Modifier.fillMaxWidth(),
         drawerContent = {
             LazyColumn(
                 modifier = Modifier
