@@ -26,7 +26,7 @@ data class Detail(
     val answer: String
 )
 
-data class ApiResponse(     //Index
+data class IndexResponse(     //Index
     val subjects: List<Subject>,
     val details: List<Detail>
 )

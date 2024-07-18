@@ -14,8 +14,8 @@ import java.net.SocketTimeoutException
 
 class MainViewModel : ViewModel() {
 
-    private val _data = MutableStateFlow<List<ApiResponse>>(emptyList())
-    val data: LiveData<List<ApiResponse>> = _data.asLiveData()
+    private val _data = MutableStateFlow<List<IndexResponse>>(emptyList())
+    val data: LiveData<List<IndexResponse>> = _data.asLiveData()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: LiveData<String?> = _error.asLiveData()

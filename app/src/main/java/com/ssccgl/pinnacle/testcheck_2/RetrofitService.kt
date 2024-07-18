@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 interface ApiService {
     @POST("/index")
-    suspend fun fetchData(@Body request: FetchDataRequest): List<ApiResponse>
+    suspend fun fetchData(@Body request: FetchDataRequest): List<IndexResponse>
 
     @POST("/save_next")
     suspend fun saveAnswer(@Body request: SaveAnswerRequest): SaveAnswerResponse
