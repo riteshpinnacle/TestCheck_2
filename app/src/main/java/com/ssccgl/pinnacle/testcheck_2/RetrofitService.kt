@@ -17,6 +17,8 @@ interface ApiService {
     @POST("/submit")
     suspend fun submit(@Body request: SubmitRequest): SubmitResponse
 
+    @POST("/paperCodeDetails")
+    suspend fun fetchPaperCodeDetails(@Body request: FetchDataRequest): PaperCodeDetailsResponse
 }
 
 object RetrofitInstance {

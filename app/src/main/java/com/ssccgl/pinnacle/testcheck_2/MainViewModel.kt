@@ -86,6 +86,28 @@ class MainViewModel : ViewModel() {
                     setSelectedOption(response[0].details[0].qid)
                 }
                 _error.value = null
+
+                fetchPaperCodeDetails()
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    private fun fetchPaperCodeDetails() {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.fetchPaperCodeDetails(
+                    FetchDataRequest(
+                        paper_code = paperCode,
+                        email_id = emailId,
+                        exam_mode_id = examModeId,
+                        test_series_id = testSeriesId
+                    )
+                )
+                val totalSeconds = response.hrs * 3600 + response.mins * 60 + response.secs
+                _remainingCountdown.value = totalSeconds.toLong()
+                _displayCountdownTime.value = formatTime(totalSeconds.toLong())
             } catch (e: Exception) {
                 _error.value = e.message
             }

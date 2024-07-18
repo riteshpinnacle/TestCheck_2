@@ -83,3 +83,21 @@ data class SubmitRequest(
 data class SubmitResponse(
     val status: String
 )
+
+data class PaperCodeDetailsResponse(
+    val paper_code: String,
+    val title: String,
+    val subject_id: Int,
+    val questions: Int,
+    val hrs: Int,
+    val mins: Int,
+    val secs: Int,
+    val subject_name: String,
+    val answered_count: Int,
+    val notanswered_count: Int,
+    val marked_count: Int,
+    val marked_answered_count: Int,
+    val not_visited: Int,
+    val test_type: String
+)
+
