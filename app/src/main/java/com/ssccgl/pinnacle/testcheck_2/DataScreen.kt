@@ -26,6 +26,8 @@ import androidx.compose.ui.draw.clip
 fun DataScreen(viewModel: MainViewModel = viewModel()) {
     val data by viewModel.data.observeAsState(emptyList())
     val error by viewModel.error.observeAsState()
+    val title by viewModel.title.observeAsState("")
+    val paperCodeDetails by viewModel.paperCodeDetails.observeAsState()
 
     val details = data.flatMap { it.details }
 
@@ -86,15 +88,26 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        scrimColor = Color.Black.copy(alpha = 0.5f),
+        scrimColor = Color.White.copy(alpha = 0.9f),
         gesturesEnabled = true,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(0.5f),
         drawerContent = {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight()
                     .padding(16.dp)
             ) {
+                item {
+                    paperCodeDetails?.let {
+                        Text("Answered: ${it.answered_count}")
+                        Text("Not Answered: ${it.notanswered_count}")
+                        Text("Marked for Review: ${it.marked_count}")
+                        Text("Marked for Review and Answered: ${it.marked_answered_count}")
+                        Text("Not Visited: ${it.not_visited}")
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
+
                 val buttonRows = details.chunked(5)
                 items(buttonRows) { row ->
                     Row(
@@ -136,7 +149,8 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("Pinnacle SSC CGL Tier I") },
+//                        title = { Text("Pinnacle SSC CGL Tier I") },
+                        title = { Text(title) },
                         actions = {
                             IconButton(onClick = {
                                 coroutineScope.launch { drawerState.open() }
