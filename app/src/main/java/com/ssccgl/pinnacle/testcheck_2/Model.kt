@@ -1,5 +1,8 @@
 package com.ssccgl.pinnacle.testcheck_2
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+
 // Data classes for index
 data class Subject(
     val sb_id: Int,
@@ -19,11 +22,11 @@ data class Detail(
     val hindi_question: String,
     val positive_marks: String,
     val negative_marks: Double,
-    val answered_ques: Int,
+    var answered_ques: Int,
     val hrs: String,        // Saves the time for individual question
     val mins: String,       // Saves the time for individual question
     val secs: String,       // Saves the time for individual question
-    val answer: String
+    var answer: String
 )
 
 data class IndexResponse(     //Index

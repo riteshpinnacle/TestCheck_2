@@ -1,5 +1,7 @@
 package com.ssccgl.pinnacle.testcheck_2
 
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,7 +21,10 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +40,6 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
     val selectedOption by viewModel.selectedOption.observeAsState("")
     val isDataDisplayed by viewModel.isDataDisplayed.observeAsState(false)
 
-//    val selectedOptions = viewModel.selectedOptions
     val elapsedTimeMap = viewModel.elapsedTimeMap
 
     val remainingCountdown by viewModel.remainingCountdown.observeAsState(3600L)
@@ -48,6 +52,14 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val drawerWidth = screenWidth * 0.75f
+
+    val markedForReviewMap by viewModel.markedForReviewMap.observeAsState(emptyMap())
+    val isMarkedForReview = markedForReviewMap[currentQuestionId] ?: false
+
+    val answerTyp by viewModel.answerTyp.collectAsState()
 
     LaunchedEffect(Pair(isDataDisplayed, currentQuestionId)) {
         if (isDataDisplayed) {
@@ -88,60 +100,116 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        scrimColor = Color.White.copy(alpha = 0.9f),
+//        scrimColor = Color.White.copy(alpha = 0.9f),
+        scrimColor = Color.White,
         gesturesEnabled = true,
-        modifier = Modifier.fillMaxWidth(),
         drawerContent = {
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxHeight()
+                    .width(drawerWidth)
                     .padding(16.dp)
             ) {
-                item {
-                    paperCodeDetails?.let {
+                paperCodeDetails?.let {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularButton(onClick = {}, text = "", answerType = 1)
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text("Answered: ${it.answered_count}")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularButton(onClick = {}, text = "", answerType = 2)
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text("Not Answered: ${it.notanswered_count}")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularButton(onClick = {}, text = "", answerType = 4)
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text("Marked for Review: ${it.marked_count}")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularButton(onClick = {}, text = "", answerType = 3)
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text("Marked for Review and Answered: ${it.marked_answered_count}")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularButton(onClick = {}, text = "", answerType = 0)
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text("Not Visited: ${it.not_visited}")
-                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                if (drawerState.isOpen){
+                    LazyColumn(
+                        modifier = Modifier
+                            .width(drawerWidth)  // Ensure LazyColumn takes full width of the drawer
+                            .weight(1f)     // Make LazyColumn take up remaining space in the drawer
+                    ) {
+                        val buttonRows = details.chunked(5)
+                        items(buttonRows) { row ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                row.forEach { detail ->
+                                    val answerType = answerTyp[detail.qid] ?: 0
+
+                                    Log.d("CircularButton", "Question ID: ${detail.qid}, Answer Type: $answerType")
+
+                                    CircularButton(
+                                        onClick = {
+                                            val currentTime = System.currentTimeMillis()
+                                            val startTime =
+                                                startTimeMap[currentQuestionId] ?: currentTime
+                                            val elapsed = elapsedTimeMap[currentQuestionId] ?: 0L
+                                            val newElapsedTime =
+                                                elapsed + (currentTime - startTime) / 1000
+                                            elapsedTimeMap[currentQuestionId] = newElapsedTime
+
+                                            viewModel.saveAnswer(
+                                                paperId = currentQuestionId,
+                                                option = viewModel.validateOption(selectedOption),
+                                                subject = detail.subject_id,
+                                                currentPaperId = detail.qid,
+                                                remainingTime = formatTime(remainingCountdown),
+                                                singleTm = formatTime(newElapsedTime),
+                                                saveType = "nav",
+                                                answerStatus = if (isMarkedForReview) "4" else "1"
+                                            )
+
+                                            viewModel.moveToQuestion(detail.qid)
+                                            coroutineScope.launch { drawerState.close() }
+                                        },
+                                        text = detail.qid.toString(),
+                                        answerType = answerType
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.padding(4.dp))
+                        }
                     }
                 }
 
-                val buttonRows = details.chunked(5)
-                items(buttonRows) { row ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(0.8f),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        row.forEach { detail ->
-                            CircularButton(
-                                onClick = {
-                                    val currentTime = System.currentTimeMillis()
-                                    val startTime = startTimeMap[currentQuestionId] ?: currentTime
-                                    val elapsed = elapsedTimeMap[currentQuestionId] ?: 0L
-                                    val newElapsedTime = elapsed + (currentTime - startTime) / 1000
-                                    elapsedTimeMap[currentQuestionId] = newElapsedTime
+                Spacer(modifier = Modifier.height(16.dp)) // Add space between LazyColumn and Submit button
 
-                                    viewModel.saveAnswer(
-                                        paperId = currentQuestionId,
-                                        option = viewModel.validateOption(selectedOption),
-                                        subject = detail.subject_id,
-                                        currentPaperId = detail.qid,
-                                        remainingTime = formatTime(remainingCountdown),
-                                        singleTm = formatTime(newElapsedTime),
-                                        saveType = "nav",
-                                        answerStatus = "4"
-                                    )
-
-                                    viewModel.moveToQuestion(detail.qid)
-                                    coroutineScope.launch { drawerState.close() }
-                                },
-                                text = detail.qid.toString()
-                            )
-                        }
-                    }
-                    Spacer(Modifier.padding(4.dp))
+                Button(
+                    onClick = {
+                        viewModel.submit()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red
+                    ),
+                    modifier = Modifier.align(Alignment.CenterHorizontally) // Align the button to the center horizontally
+                ) {
+                    Text("Submit", color = Color.White)
                 }
             }
         },
@@ -149,7 +217,6 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
             Scaffold(
                 topBar = {
                     TopAppBar(
-//                        title = { Text("Pinnacle SSC CGL Tier I") },
                         title = { Text(title) },
                         actions = {
                             IconButton(onClick = {
@@ -157,7 +224,7 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                             }) {
                                 Icon(imageVector = Icons.Default.Menu, contentDescription = "Open Drawer")
                             }
-                        }
+                        },
                     )
                 }
             ) { paddingValues ->
@@ -276,7 +343,7 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                                                             remainingTime = formatTime(remainingCountdown),
                                                             singleTm = formatTime(newElapsedTime),
                                                             saveType = "nxt",
-                                                            answerStatus = "1"
+                                                            answerStatus = if (isMarkedForReview) "4" else "1"
                                                         )
 
                                                         viewModel.moveToPreviousQuestion()
@@ -305,7 +372,7 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                                                             remainingTime = formatTime(remainingCountdown),
                                                             singleTm = formatTime(newElapsedTime),
                                                             saveType = "nxt",
-                                                            answerStatus = "1"
+                                                            answerStatus = if (isMarkedForReview) "4" else "1"
                                                         )
 
                                                         viewModel.moveToNextQuestion()
@@ -315,16 +382,27 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                                                 }
                                             }
 
-                                            // Add the Submit button here
+                                            // Mark for Review Button
                                             Button(
                                                 onClick = {
-                                                    viewModel.submit()
+                                                    viewModel.toggleMarkForReview(currentQuestionId)
                                                 },
                                                 colors = ButtonDefaults.buttonColors(
-                                                    containerColor = Color.Red
+                                                    containerColor = if (isMarkedForReview) Color.Green else Color.Gray
                                                 )
                                             ) {
-                                                Text("Submit", color = Color.White)
+                                                Text(if (isMarkedForReview) "Marked for Review" else "Mark for Review")
+                                            }
+                                            // Clear Response Button
+                                            Button(
+                                                onClick = {
+                                                    viewModel.clearResponse()
+                                                },
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = Color.LightGray
+                                                )
+                                            ) {
+                                                Text("Clear Response", color = Color.Black)
                                             }
                                         }
                                     }
@@ -346,22 +424,73 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
 }
 
 @Composable
-fun CircularButton(onClick: () -> Unit, text: String) {
+fun CircularButton(onClick: () -> Unit, text: String, answerType: Int) {
+    val backgroundColor: Color
+    val textColor: Color
+    val border: BorderStroke?
+    val icon: @Composable (() -> Unit)?
+
+    when (answerType) {
+        1 -> {
+            backgroundColor = Color.Green
+            textColor = Color.White
+            border = null
+            icon = null
+        }
+        2 -> {
+            backgroundColor = Color.Red
+            textColor = Color.White
+            border = null
+            icon = null
+        }
+        3 -> {
+            backgroundColor = Color.White
+            textColor = Color.Black
+            border = BorderStroke(2.dp, Color.Blue)
+            icon = {
+                Icon(Icons.Default.Check, contentDescription = "Tick", tint = Color.Blue)
+            }
+        }
+        4 -> {
+            backgroundColor = Color.Green
+            textColor = Color.White
+            border = BorderStroke(2.dp, Color.Blue)
+            icon = {
+                Icon(Icons.Default.Check, contentDescription = "Tick",
+                    tint = Color.Blue)
+            }
+        }
+        0 -> {
+            backgroundColor = Color.White
+            textColor = Color.Black
+            border = null
+            icon = null
+        }
+        else -> {
+            backgroundColor = Color.Blue
+            textColor = Color.White
+            border = null
+            icon = null
+        }
+    }
+
     Surface(
         modifier = Modifier
-            .size(48.dp)
+            .size(32.dp)
             .clip(CircleShape)
-            .background(Color(0xFFAB47BC))
+            .background(backgroundColor)
             .padding(4.dp),
         onClick = onClick,
         shape = CircleShape,
-        color = Color(0xFFAB47BC)
+        color = backgroundColor,
+        border = border
     ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            Text(text = text, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+            Text(text = text, color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+            icon?.invoke()
         }
     }
 }

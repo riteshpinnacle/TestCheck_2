@@ -24,14 +24,14 @@ interface ApiService {
 
 object RetrofitInstance {
     private val client = OkHttpClient.Builder()
-        .connectTimeout(3600, TimeUnit.SECONDS) // Connection timeout
-        .readTimeout(3600, TimeUnit.SECONDS)    // Read timeout
-        .writeTimeout(3600, TimeUnit.SECONDS)   // Write timeout
+        .connectTimeout(300, TimeUnit.SECONDS) // Connection timeout
+        .readTimeout(300, TimeUnit.SECONDS)    // Read timeout
+        .writeTimeout(300, TimeUnit.SECONDS)   // Write timeout
         .build()
 
     val api: ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl("http://3.111.199.93:5000")
+            .baseUrl("https://onlineexam.ssccglpinnacle.com")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
