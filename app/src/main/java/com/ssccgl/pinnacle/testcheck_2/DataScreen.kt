@@ -162,7 +162,7 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                                 row.forEach { detail ->
                                     val answerType = answerTyp[detail.qid] ?: 0
 
-                                    Log.d("CircularButton", "Question ID: ${detail.qid}, Answer Type: $answerType")
+                                    Log.d("CircularButton", "Question ID: ${detail.qid}, Answer Type: $answerType, ChosenOption: ${viewModel.validateOption(selectedOption)}")
 
                                     CircularButton(
                                         onClick = {
