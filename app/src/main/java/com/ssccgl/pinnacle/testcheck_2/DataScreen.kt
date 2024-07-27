@@ -128,14 +128,14 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularButton(onClick = {}, text = "", answerType = 4)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Marked for Review: ${it.marked_count}")
+                        Text("Marked for Review and Answered: ${it.marked_answered_count}")
                     }
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularButton(onClick = {}, text = "", answerType = 3)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Marked for Review and Answered: ${it.marked_answered_count}")
+                        Text("Marked for Review: ${it.marked_count}")
                     }
                     Spacer(modifier = Modifier.height(8.dp))
 

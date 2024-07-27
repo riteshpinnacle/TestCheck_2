@@ -91,13 +91,27 @@ class MainViewModel : ViewModel() {
 
                 _data.value = response
 
+//                // Initialize selectedOptions and answerTyp
+//                val initialAnswerTyp = mutableMapOf<Int, Int>()
+//                response.flatMap { it.details }.forEach { detail ->
+//                    selectedOptions[detail.qid] = detail.answer
+//                    initialAnswerTyp[detail.qid] = detail.answered_ques
+//                }
+//                answerTyp.value = initialAnswerTyp
+
+
                 // Initialize selectedOptions and answerTyp
                 val initialAnswerTyp = mutableMapOf<Int, Int>()
+                val initialMarkedForReviewMap = mutableMapOf<Int, Boolean>()
                 response.flatMap { it.details }.forEach { detail ->
                     selectedOptions[detail.qid] = detail.answer
                     initialAnswerTyp[detail.qid] = detail.answered_ques
+
+                    // Set initial marked for review based on answerTyp
+                    initialMarkedForReviewMap[detail.qid] = detail.answered_ques == 3 || detail.answered_ques == 4
                 }
                 answerTyp.value = initialAnswerTyp
+                _markedForReviewMap.value = initialMarkedForReviewMap
 
                 Log.d("fetchData", "selectedOptions: $selectedOptions")
                 Log.d("fetchData", "initialAnswerTyp: $initialAnswerTyp")
