@@ -91,15 +91,6 @@ class MainViewModel : ViewModel() {
 
                 _data.value = response
 
-//                // Initialize selectedOptions and answerTyp
-//                val initialAnswerTyp = mutableMapOf<Int, Int>()
-//                response.flatMap { it.details }.forEach { detail ->
-//                    selectedOptions[detail.qid] = detail.answer
-//                    initialAnswerTyp[detail.qid] = detail.answered_ques
-//                }
-//                answerTyp.value = initialAnswerTyp
-
-
                 // Initialize selectedOptions and answerTyp
                 val initialAnswerTyp = mutableMapOf<Int, Int>()
                 val initialMarkedForReviewMap = mutableMapOf<Int, Boolean>()
@@ -112,9 +103,6 @@ class MainViewModel : ViewModel() {
                 }
                 answerTyp.value = initialAnswerTyp
                 _markedForReviewMap.value = initialMarkedForReviewMap
-
-                Log.d("fetchData", "selectedOptions: $selectedOptions")
-                Log.d("fetchData", "initialAnswerTyp: $initialAnswerTyp")
 
                 // Ensure the first question ID is set correctly
                 if (response.isNotEmpty() && response[0].details.isNotEmpty()) {
@@ -170,14 +158,11 @@ class MainViewModel : ViewModel() {
             val hours = it.hrs.toLongOrNull() ?: 0L
             val minutes = it.mins.toLongOrNull() ?: 0L
             val seconds = it.secs.toLongOrNull() ?: 0L
-            Log.d("initializeElapsedTime", "Initial elapsed time for question $questionId: ${hours}h ${minutes}m ${seconds}s")
             hours * 3600 + minutes * 60 + seconds
         } ?: 0L
-        Log.d("initializeElapsedTime", "Setting initial elapsed time for question $questionId: $initialElapsedTime seconds")
         elapsedTimeMap[questionId] = initialElapsedTime // Ensure it is stored in the map
         initialElapsedTime
     }
-    Log.d("initializeElapsedTime", "Previous elapsed time for question $questionId: $previousElapsedTime seconds")
     _elapsedTime.value = previousElapsedTime
     _displayElapsedTime.value = formatTime(previousElapsedTime)
     startTimeMap[questionId] = System.currentTimeMillis()
@@ -228,85 +213,25 @@ class MainViewModel : ViewModel() {
         _selectedTabIndex.value = index
     }
 
-//    fun updateSelectedOption(option: String) {
-//        Log.d("updateSelectedOption", "Received option: $option")
-//        _selectedOption.value = option
-//        Log.d("updateSelectedOption", "Updated _selectedOption: ${_selectedOption.value}")
-//        selectedOptions[_currentQuestionId.value] = option
-//        updateAnswerTyp(_currentQuestionId.value, option)
-//    }
-
     fun updateSelectedOption(option: String) {
         val validatedOption = validateOption(option)
-        Log.d("updateSelectedOption", "Received option: $option, Validated option: $validatedOption")
         _selectedOption.value = validatedOption
-        Log.d("updateSelectedOption", "Updated _selectedOption: ${_selectedOption.value}")
-//        selectedOptions[_currentQuestionId.value] = validatedOption
-//        updateAnswerTyp(_currentQuestionId.value, validatedOption)
     }
 
-
-//    fun updateAnswerTyp(qid: Int, option: String) {
-//        val isMarkedForReview = markedForReviewMap.value?.get(qid) ?: false
-//        val newAnswerType = when {
-//            option == "" || option == "0"-> if (isMarkedForReview) 3 else 2
-//            option in listOf("a", "b", "c", "d") -> if (isMarkedForReview) 4 else 1
-//            else -> 0
-//        }
-//        answerTyp.value = answerTyp.value.toMutableMap().apply { put(qid, newAnswerType) }
-//    }
-
-//    fun updateAnswerTyp(qid: Int, option: String) {
-//        val isMarkedForReview = markedForReviewMap.value?.get(qid) ?: false
-//        Log.d("updateAnswerTyp", "qid: $qid, option: $option, isMarkedForReview: $isMarkedForReview")
-//
-//
-//        val newAnswerType = when {
-//            option == "0" || option.isBlank() -> if (isMarkedForReview) 3 else 2
-//            option in listOf("a", "b", "c", "d") -> if (isMarkedForReview) 4 else 1
-//            else -> 0
-//        }
-//
-//        Log.d("updateAnswerTyp", "newAnswerType: $newAnswerType")
-//        answerTyp.value = answerTyp.value.toMutableMap().apply { put(qid, newAnswerType) }
-//        Log.d("answerTyp","AnswerType: ${answerTyp.value}")
-//    }
 
     fun updateAnswerTyp(qid: Int, option: String) {
         val isMarkedForReview = markedForReviewMap.value?.get(qid) ?: false
-        Log.d("updateAnswerTyp", "qid: $qid, option: '$option', isMarkedForReview: $isMarkedForReview")
-
         val newAnswerType = when {
             option.isBlank() -> {
-                if (isMarkedForReview) {
-                    Log.d("updateAnswerTyp", "Setting answerType to 3 (Marked for Review but not answered)")
-                    3
-                } else {
-                    Log.d("updateAnswerTyp", "Setting answerType to 2 (Not Answered)")
-                    2
-                }
+                if (isMarkedForReview) 3 else 2
             }
             option in listOf("a", "b", "c", "d") -> {
-                if (isMarkedForReview) {
-                    Log.d("updateAnswerTyp", "Setting answerType to 4 (Marked for Review and Answered)")
-                    4
-                } else {
-                    Log.d("updateAnswerTyp", "Setting answerType to 1 (Answered)")
-                    1
-                }
+                if (isMarkedForReview) 4 else 1
             }
-            else -> {
-                Log.d("updateAnswerTyp", "Setting answerType to 0 (Not Visited)")
-                0
-            }
+            else -> 0
         }
-
-        Log.d("updateAnswerTyp", "newAnswerType: $newAnswerType")
         answerTyp.value = answerTyp.value.toMutableMap().apply { put(qid, newAnswerType) }
-        Log.d("answerTyp", "Updated AnswerType: ${answerTyp.value}")
     }
-
-
 
 
     fun moveToPreviousQuestion() {
@@ -334,29 +259,11 @@ class MainViewModel : ViewModel() {
         _markedForReviewMap.value = _markedForReviewMap.value.toMutableMap().apply {
             put(questionId, !currentMarkedStatus)
         }
-        Log.d("toggleMarkForReview", "questionId: $questionId, newMarkedStatus: ${!currentMarkedStatus}")
-//        updateAnswerTyp(questionId, selectedOptions[questionId] ?: "")
     }
 
     fun isMarkedForReview(questionId: Int): Boolean {
         return _markedForReviewMap.value[questionId] ?: false
     }
-
-//    fun calculateAnsweredQues(detail: Detail): Int {
-//        val option = selectedOptions[detail.qid]
-//        val isMarkedForReview = isMarkedForReview(detail.qid)
-//        val answeredQues =  when {
-//            option in listOf("a", "b", "c", "d") && !isMarkedForReview -> 1
-//            option == "" && !isMarkedForReview -> 2
-//            option in listOf("a", "b", "c", "d") && isMarkedForReview -> 4
-//            option == "" && isMarkedForReview -> 3
-//            option == "0" -> 0
-//            else -> 0
-//        }
-//        detail.answered_ques = answeredQues // Update The variable
-//        return answeredQues
-//    }
-
 
     fun saveAnswer(
         paperId: Int,

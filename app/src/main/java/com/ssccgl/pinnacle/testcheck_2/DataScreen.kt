@@ -1,8 +1,5 @@
 package com.ssccgl.pinnacle.testcheck_2
 
-import android.util.Log
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -14,17 +11,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.items
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.tooling.preview.Preview
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -161,8 +153,6 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
                             ) {
                                 row.forEach { detail ->
                                     val answerType = answerTyp[detail.qid] ?: 0
-
-                                    Log.d("CircularButton", "Question ID: ${detail.qid}, Answer Type: $answerType, ChosenOption: ${viewModel.validateOption(selectedOption)}")
 
                                     CircularButton(
                                         onClick = {
@@ -423,97 +413,97 @@ fun DataScreen(viewModel: MainViewModel = viewModel()) {
     )
 }
 
-@Composable
-fun CircularButton(onClick: () -> Unit, text: String, answerType: Int) {
-    val backgroundColor: Color
-    val textColor: Color
-    val border: BorderStroke?
-    val icon: @Composable (() -> Unit)?
-
-    when (answerType) {
-        1 -> {
-            backgroundColor = Color.Green
-            textColor = Color.White
-            border = null
-            icon = null
-        }
-        2 -> {
-            backgroundColor = Color.Red
-            textColor = Color.White
-            border = null
-            icon = null
-        }
-        3 -> {
-            backgroundColor = Color.White
-            textColor = Color.Black
-            border = BorderStroke(2.dp, Color.Blue)
-            icon = {
-                Icon(Icons.Default.Check, contentDescription = "Tick", tint = Color.Blue)
-            }
-        }
-        4 -> {
-            backgroundColor = Color.Green
-            textColor = Color.White
-            border = BorderStroke(2.dp, Color.Blue)
-            icon = {
-                Icon(Icons.Default.Check, contentDescription = "Tick",
-                    tint = Color.Blue)
-            }
-        }
-        0 -> {
-            backgroundColor = Color.White
-            textColor = Color.Black
-            border = null
-            icon = null
-        }
-        else -> {
-            backgroundColor = Color.Blue
-            textColor = Color.White
-            border = null
-            icon = null
-        }
-    }
-
-    Surface(
-        modifier = Modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .background(backgroundColor)
-            .padding(4.dp),
-        onClick = onClick,
-        shape = CircleShape,
-        color = backgroundColor,
-        border = border
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text(text = text, color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-            icon?.invoke()
-        }
-    }
-}
-
-@Composable
-fun OptionItem(option: String, optionValue: String, selectedOption: String, onSelectOption: (String) -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-    ) {
-        RadioButton(
-            selected = selectedOption == optionValue,
-            onClick = { onSelectOption(optionValue) }
-        )
-        HtmlText(html = option)
-    }
-}
-
-fun formatTime(seconds: Long): String {
-    val hours = seconds / 3600
-    val minutes = (seconds % 3600) / 60
-    val tSecond = seconds % 60
-    return String.format("%02d:%02d:%02d", hours, minutes, tSecond)
-}
+//@Composable
+//fun CircularButton(onClick: () -> Unit, text: String, answerType: Int) {
+//    val backgroundColor: Color
+//    val textColor: Color
+//    val border: BorderStroke?
+//    val icon: @Composable (() -> Unit)?
+//
+//    when (answerType) {
+//        1 -> {
+//            backgroundColor = Color.Green
+//            textColor = Color.White
+//            border = null
+//            icon = null
+//        }
+//        2 -> {
+//            backgroundColor = Color.Red
+//            textColor = Color.White
+//            border = null
+//            icon = null
+//        }
+//        3 -> {
+//            backgroundColor = Color.White
+//            textColor = Color.Black
+//            border = BorderStroke(2.dp, Color.Blue)
+//            icon = {
+//                Icon(Icons.Default.Check, contentDescription = "Tick", tint = Color.Blue)
+//            }
+//        }
+//        4 -> {
+//            backgroundColor = Color.Green
+//            textColor = Color.White
+//            border = BorderStroke(2.dp, Color.Blue)
+//            icon = {
+//                Icon(Icons.Default.Check, contentDescription = "Tick",
+//                    tint = Color.Blue)
+//            }
+//        }
+//        0 -> {
+//            backgroundColor = Color.White
+//            textColor = Color.Black
+//            border = null
+//            icon = null
+//        }
+//        else -> {
+//            backgroundColor = Color.Blue
+//            textColor = Color.White
+//            border = null
+//            icon = null
+//        }
+//    }
+//
+//    Surface(
+//        modifier = Modifier
+//            .size(32.dp)
+//            .clip(CircleShape)
+//            .background(backgroundColor)
+//            .padding(4.dp),
+//        onClick = onClick,
+//        shape = CircleShape,
+//        color = backgroundColor,
+//        border = border
+//    ) {
+//        Box(
+//            contentAlignment = Alignment.Center,
+//            modifier = Modifier.fillMaxSize()
+//        ) {
+//            Text(text = text, color = textColor, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+//            icon?.invoke()
+//        }
+//    }
+//}
+//
+//@Composable
+//fun OptionItem(option: String, optionValue: String, selectedOption: String, onSelectOption: (String) -> Unit) {
+//    Row(
+//        verticalAlignment = Alignment.CenterVertically,
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(vertical = 4.dp)
+//    ) {
+//        RadioButton(
+//            selected = selectedOption == optionValue,
+//            onClick = { onSelectOption(optionValue) }
+//        )
+//        HtmlText(html = option)
+//    }
+//}
+//
+//fun formatTime(seconds: Long): String {
+//    val hours = seconds / 3600
+//    val minutes = (seconds % 3600) / 60
+//    val tSecond = seconds % 60
+//    return String.format("%02d:%02d:%02d", hours, minutes, tSecond)
+//}
